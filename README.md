@@ -1,4 +1,4 @@
-AudioKit V4.9
+AudioKit V4.9 (ios13-fix binary rebuilt with xcode 11.3.1)
 ===
 
 [![Build Status](https://travis-ci.org/AudioKit/AudioKit.svg)](https://travis-ci.org/AudioKit/AudioKit)
