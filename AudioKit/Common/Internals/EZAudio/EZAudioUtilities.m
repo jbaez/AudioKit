@@ -530,7 +530,17 @@ BOOL __shouldExitOnCheckResultFail = YES;
 
 + (void)checkResult:(OSStatus)result operation:(const char *)operation
 {
-    if (result == noErr) return;
+    if ([self isSuccessResult:result operation:operation]) return;
+
+    if (__shouldExitOnCheckResultFail)
+    {
+        exit(-1);
+    }
+}
+
++ (BOOL)isSuccessResult:(OSStatus)result operation:(const char*)operation
+{
+    if (result == noErr) return YES;
     char errorString[20];
     // see if it appears to be a 4-char-code
     *(UInt32 *)(errorString + 1) = CFSwapInt32HostToBig(result);
@@ -542,10 +552,7 @@ BOOL __shouldExitOnCheckResultFail = YES;
         // no, format it as an integer
         sprintf(errorString, "%d", (int)result);
     fprintf(stderr, "Error: %s (%s)\n", operation, errorString);
-    if (__shouldExitOnCheckResultFail)
-    {
-        exit(-1);
-    }
+    return NO;
 }
 
 //------------------------------------------------------------------------------

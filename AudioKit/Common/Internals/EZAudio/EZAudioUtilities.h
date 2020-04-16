@@ -392,6 +392,15 @@ typedef struct
  */
 + (void)checkResult:(OSStatus)result operation:(const char *)operation;
 
+/**
+Basic check result function useful for checking each step of the audio setup process.
+This check doesn't exit the application in case it fails
+@param result    The OSStatus representing the result of an operation
+@param operation A string (const char, not NSString) describing the operation taking place (will print if fails)
+@return BOOL
+*/
++ (BOOL)isSuccessResult:(OSStatus)result operation:(const char*)operation;
+
 //------------------------------------------------------------------------------
 
 /**

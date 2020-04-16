@@ -75,7 +75,8 @@ typedef struct {
     self.floatConverter = nil;
     pthread_mutex_destroy(&_lock);
     [EZAudioUtilities freeFloatBuffers:self.floatData numberOfChannels:self.clientFormat.mChannelsPerFrame];
-    [EZAudioUtilities checkResult:ExtAudioFileDispose(self.info->extAudioFileRef) operation:"Failed to dispose of ext audio file"];
+    if ([EZAudioUtilities isSuccessResult:ExtAudioFileDispose(self.info->extAudioFileRef) operation:"Failed to dispose of ext audio file"]) {
+    }
     free(self.info);
 }
 
@@ -242,15 +243,18 @@ typedef struct {
     //
     CFURLRef url = self.info->sourceURL;
     NSURL *fileURL = (__bridge NSURL *)(url);
-    BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:fileURL.path];
+    BOOL success = [[NSFileManager defaultManager] fileExistsAtPath:fileURL.path];
+    if (!success) {
+        return NO;
+    }
 
     //
     // Create an ExtAudioFileRef for the file handle
     //
-    if (fileExists) {
-        [EZAudioUtilities checkResult:ExtAudioFileOpenURL(url, &self.info->extAudioFileRef)
-                            operation:"Failed to create ExtAudioFileRef"];
-    } else {
+    success = [EZAudioUtilities isSuccessResult:ExtAudioFileOpenURL(url, &self.info->extAudioFileRef)
+    operation:"Failed to create ExtAudioFileRef"];
+
+    if (!success) {
         return NO;
     }
 
@@ -258,31 +262,40 @@ typedef struct {
     // Get the underlying AudioFileID
     //
     UInt32 propSize = sizeof(self.info->audioFileID);
-    [EZAudioUtilities checkResult:ExtAudioFileGetProperty(self.info->extAudioFileRef,
+    success = [EZAudioUtilities isSuccessResult:ExtAudioFileGetProperty(self.info->extAudioFileRef,
                                                           kExtAudioFileProperty_AudioFile,
                                                           &propSize,
                                                           &self.info->audioFileID)
                         operation:"Failed to get underlying AudioFileID"];
+    if (!success) {
+        return NO;
+    }
 
     //
     // Store the file format
     //
     propSize = sizeof(self.info->fileFormat);
-    [EZAudioUtilities checkResult:ExtAudioFileGetProperty(self.info->extAudioFileRef,
+    success = [EZAudioUtilities isSuccessResult:ExtAudioFileGetProperty(self.info->extAudioFileRef,
                                                           kExtAudioFileProperty_FileDataFormat,
                                                           &propSize,
                                                           &self.info->fileFormat)
                         operation:"Failed to get file audio format on existing audio file"];
+    if (!success) {
+        return NO;
+    }
 
     //
     // Get the total frames and duration
     //
     propSize = sizeof(SInt64);
-    [EZAudioUtilities checkResult:ExtAudioFileGetProperty(self.info->extAudioFileRef,
+    success = [EZAudioUtilities isSuccessResult:ExtAudioFileGetProperty(self.info->extAudioFileRef,
                                                           kExtAudioFileProperty_FileLengthFrames,
                                                           &propSize,
                                                           &self.info->frames)
                         operation:"Failed to get total frames"];
+    if (!success) {
+        return NO;
+    }
     self.info->duration = (NSTimeInterval)self.info->frames / self.info->fileFormat.mSampleRate;
 
     return YES;
