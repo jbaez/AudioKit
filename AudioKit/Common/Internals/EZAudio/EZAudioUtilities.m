@@ -530,17 +530,29 @@ BOOL __shouldExitOnCheckResultFail = YES;
 
 + (void)checkResult:(OSStatus)result operation:(const char *)operation
 {
-    if ([self isSuccessResult:result operation:operation]) return;
+    NSString *error = [self getResultErrorString:result operation:operation];
+    if (error == nil) return;
 
     if (__shouldExitOnCheckResultFail)
     {
-        exit(-1);
+
+        NSException *e = [NSException
+            exceptionWithName: @"EZAudio checkResult"
+            reason: error
+            userInfo: nil];
+        @throw e;
     }
 }
 
 + (BOOL)isSuccessResult:(OSStatus)result operation:(const char*)operation
 {
-    if (result == noErr) return YES;
+    NSString *error = [self getResultErrorString:result operation:operation];
+    return error == nil; // no error string means successful result
+}
+
++ (nullable NSString *)getResultErrorString:(OSStatus)result operation:(const char*)operation
+{
+    if (result == noErr) return nil;
     char errorString[20];
     // see if it appears to be a 4-char-code
     *(UInt32 *)(errorString + 1) = CFSwapInt32HostToBig(result);
@@ -552,7 +564,8 @@ BOOL __shouldExitOnCheckResultFail = YES;
         // no, format it as an integer
         sprintf(errorString, "%d", (int)result);
     fprintf(stderr, "Error: %s (%s)\n", operation, errorString);
-    return NO;
+    NSString *error = [NSString stringWithFormat:@"Error: %s (%s)\n", operation, errorString];
+    return error;
 }
 
 //------------------------------------------------------------------------------
