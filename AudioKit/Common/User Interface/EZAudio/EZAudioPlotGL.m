@@ -211,9 +211,14 @@ typedef struct
     self.baseEffect = [[GLKBaseEffect alloc] init];
     self.baseEffect.useConstantColor = YES;
 #if TARGET_OS_IPHONE
-    if (!self.context)
+    if (![EAGLContext currentContext])
     {
         self.context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
+
+    }
+    else
+    {
+        self.context = [EAGLContext currentContext];
     }
     [EAGLContext setCurrentContext:self.context];
     self.drawableColorFormat   = GLKViewDrawableColorFormatRGBA8888;
