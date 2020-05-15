@@ -188,6 +188,11 @@
  */
 @property (nonatomic, strong) EZOutput *output;
 
+/**
+ Flag indicating that audio interruptions are automatically handled by start/stop fetching audio. Defaults to YES.
+ */
+@property (nonatomic, assign) BOOL handleAudioInterruptions;
+
 //------------------------------------------------------------------------------
 #pragma mark - Initializers
 //------------------------------------------------------------------------------

@@ -278,6 +278,7 @@ static OSStatus EZAudioMicrophoneCallback(void                       *inRefCon,
     [EZAudioUtilities checkResult:AudioUnitInitialize(self.info->audioUnit)
                         operation:"Failed to initialize input unit"];
 
+    _handleAudioInterruptions = YES; // defaults to YES
     // setup notifications
     [self setupNotifications];
 }
@@ -305,7 +306,10 @@ static OSStatus EZAudioMicrophoneCallback(void                       *inRefCon,
 
 - (void)microphoneWasInterrupted:(NSNotification *)notification
 {
-
+    if (!_handleAudioInterruptions)
+    {
+        return;
+    }
 
     AVAudioSessionInterruptionType type = [notification.userInfo[AVAudioSessionInterruptionTypeKey] unsignedIntegerValue];
     switch (type)
